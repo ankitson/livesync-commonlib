@@ -104,8 +104,9 @@ export function createBlob(data: string | string[] | Uint8Array<ArrayBuffer> | A
 }
 
 export function isTextDocument(doc: LoadedEntry) {
-    if (doc.type == "plain") return true;
-    if (doc.datatype == "plain") return true;
+    if (doc.type == "plain" || doc.datatype == "plain") return true;
+    if (doc.type == "newnote" || doc.datatype == "newnote") return false;
+    // Fallback for legacy documents (type: "notes") without explicit plain/newnote datatype
     if (isPlainText(doc.path)) return true;
     return false;
 }
@@ -123,6 +124,12 @@ export function readContent(doc: LoadedEntry) {
     } else {
         return decodeBinary(doc.data);
     }
+}
+export function readContentSize(doc: LoadedEntry): number {
+    const content = readContent(doc);
+    return content instanceof Uint8Array
+        ? content.length
+        : new TextEncoder().encode(content).length;
 }
 
 const isIndexDBCmpExist = typeof globalThis?.indexedDB?.cmp !== "undefined";
